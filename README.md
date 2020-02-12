@@ -285,3 +285,4 @@ npm run dev:tt
 ```
 然后用对应的工具， 打开项目内的`dist`文件夹
 
+微信<img src="https://github.com/ctwj/studyTarojs/blob/master/images/wechat.png?raw=true" width="375">抖音<img src="https://github.com/ctwj/studyTarojs/blob/master/images/bytedance.png?raw=true" width="375">
