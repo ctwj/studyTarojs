@@ -25,7 +25,7 @@ Taro 是一套遵循 React 语法规范的 多端开发 解决方案。
 [Taro-基于React的小程序框架](https://nervjs.github.io/taro/docs/README.html)
 
 
-# Tarojs 集成 DVA
+# 一 Tarojs 集成 DVA
 
 ### 1. 安装 Taro脚手架 
 
@@ -286,3 +286,237 @@ npm run dev:tt
 然后用对应的工具， 打开项目内的`dist`文件夹
 
 微信<img src="https://github.com/ctwj/studyTarojs/blob/master/images/wechat.png?raw=true" width="375">抖音<img src="https://github.com/ctwj/studyTarojs/blob/master/images/bytedance.png?raw=true" width="375">
+
+# 二 添加组件
+
+本节通过添加一个加载页面来演示 组件的添加和使用
+
+### 添加组件代码
+
+在 `src` 目录下 添加 `components` 目录， 目录内新建一个组件目录 `Loading`
+添加  `index.js` 和 `index.less`
+
+`index.js`
+```
+import Taro, { Component } from '@tarojs/taro'
+import { View, Text } from '@tarojs/components'
+
+import './index.less'
+
+export default class Loading extends Component {
+  render () {
+    return <View className='loadingWrap'>
+      <View className='itemsWrap itemsAnimation'>
+        <View className='item'></View>
+        <View className='item itemleft'></View>
+        <View className='item itemright'></View>
+      </View>
+      <View className='loadingText'>
+        <Text>加载中</Text>
+      </View>
+    </View>
+  }
+}
+```
+
+由于，只适用于显示加载状态，所以组件中，并没有使用到 `model`， `接口`, 
+主要的核心就是 render 函数渲染的部分。为节省篇幅， 不再帖 `index.less`,可以到项目中查看
+
+### 使用组件
+
+1. 引用组件 
+2. 使用组件
+
+在页面中， `pages/index/index.js`
+```
+......
++ import Loading from '../../components/Loading'
+......
+
+render (props) {
+    // const { loading } = props
+
+    useEffect(() => {
+      console.log(props)
+    }, [])
+
+    return (
+      <View className='my-page'>
+        <Text className='hello'>Hello World</Text>
++       <Loading></Loading>
+      </View>
+    )
+  }
+```
+
+到这里已经新加一个组件并使用到了我们的页面中， 不过还有几个问题
+1. 如果需要在组件中发起动作 dispatch ，应该怎么处理
+
+>需要在组件中引入`import { connect } from '@tarojs/redux';`
+>并把 `state` 映射到 `props` 中， `connect` 一下，就能 `dispatch` 了
+
+2. 在父类绑定一个事件在组件上，组件是否能够调用
+
+>在父类上绑定时 onClick={this.ClickMe.bind(this)}， 组件就能直接调用了
+
+# 三 dva-loading 使用
+
+在前面，实现了一个简单的 `Loading` 组件， 这一节， 我们按需来使用 `Loading` 组件
+
+请求接口： https://service-f9fjwngp-1252021671.bj.apigw.tencentcs.com/release/pneumonia
+在接口处理期间， 显示加载组件， 加载完显示相应内容
+
+这里新添加一个页面 `info` 来演示， 在 `pages` 目录下添加 `info` 目录
+添加  `index.js` `index.less` `model.js` `service.js`
+在 `app.js` 中的 `config.pages` 中， 添加页面定义
+
+给 `index` 界面的 `hello world` 添加点击事件， 点击跳转到新加的`info`界面
+```
+......
+  navigationInfo () {
+    Taro.navigateTo({
+      url: '/pages/info/index'
+    })
+  }
+
+  render (props) {
+    // const { loading } = props
+
+    useEffect(() => {
+      console.log(props)
+    }, [])
+
+    return (
+      <View className='my-page'>
+        <Text className='hello' onClick={this.navigationInfo}>Hello World</Text>
+      </View>
+    )
+  }
+......
+```
+
+下面，开始定义接口和使用接口，并使用`dva-loading`
+
+index.js
+```
+import Taro, { Component, useEffect } from '@tarojs/taro';
+import { View, Image } from '@tarojs/components';
+import { connect } from '@tarojs/redux';
+import './index.less';
+
+import Loading from '../../components/Loading'
+
+@connect(({ info, loading }) => ({ info, loading }))
+class Info extends Component {
+
+  componentDidMount () {
+    const { dispatch } = this.props
+    dispatch({
+      type: 'info/getData'
+    })
+  }
+
+  config = {
+    "navigationBarTitleText": "Tarojs Demo",
+    "backgroundColor": "#160F2E",
+    "navigationBarBackgroundColor": "#160F2E",
+    "navigationBarTextStyle": "white",
+    "disableScroll": true
+  }
+
+  static options = {
+    addGlobalClass: true
+  }
+
+
+
+  render () {
+    const { loading } = this.props
+    const isLoading = loading.effects['info/getData'];
+    console.log('isloading', isLoading);
+
+    let { data } = this.props.info
+    if (data === undefined) {
+      data = {
+        statistics: {
+          imgUrl: ''
+        }
+      }
+    }
+
+    return (
+      <View className='my-page'>
+        {
+          isLoading && <Loading></Loading>
+        }
+        {
+          !isLoading &&
+          <View className='data-wrap'>
+            <Image
+              className='img'
+              src={data.statistics.imgUrl}
+            ></Image>
+          </View>
+        }
+      </View>
+    )
+  }
+}
+
+export default Info;
+```
+
+这里的终点是进行接口请求的监听， 
+>const isLoading = loading.effects['info/getData'];
+
+在 `componentDidMount` 进行初始化， 时会调用到这个接口，
+这个时候， 页面处于加载状态，会显示加载组件， 加载完成后，显示获取到的数据
+
+model.js
+```
+import * as Api from './service';
+
+export default {
+  namespace: 'index',
+  state: {
+    my: '',
+    test: 'test'
+  },
+
+  effects: {
+    * effectsDemo (_, { call, put }) {
+      const { status, data } = yield call(Api.demo, {});
+      if (status === 'ok') {
+        yield put({
+          type: 'save',
+          payload: {
+            topData: data,
+          }
+        });
+      }
+    },
+  },
+
+  reducers: {
+    save (state, { payload }) {
+      return { ...state, ...payload };
+    },
+  },
+
+};
+```
+
+service.js
+```
+import Request from '../../utils/request';
+
+export const getData = () => {
+  return Request({
+    url: 'release/pneumonia',
+    method: 'GET',
+  });
+};
+```
+
+更多代码详情请查看代码分支 `loading`
+预览 <img src="https://github.com/ctwj/studyTarojs/blob/master/images/loading-tt.gif?raw=true" width="375">

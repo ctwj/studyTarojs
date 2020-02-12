@@ -1,6 +1,6 @@
 import axios from "taro-axios";
 
-const baseURL = `https://test.cn`
+const baseURL = `https://service-f9fjwngp-1252021671.bj.apigw.tencentcs.com/`
 const service = axios.create({
   baseURL: baseURL,
   withCredentials: true,

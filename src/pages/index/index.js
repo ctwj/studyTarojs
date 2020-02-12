@@ -21,6 +21,12 @@ class Index extends Component {
 
   }
 
+  navigationInfo () {
+    Taro.navigateTo({
+      url: '/pages/info/index'
+    })
+  }
+
   render (props) {
     // const { loading } = props
 
@@ -30,7 +36,7 @@ class Index extends Component {
 
     return (
       <View className='my-page'>
-        <Text className='hello'>Hello World</Text>
+        <Text className='hello' onClick={this.navigationInfo}>Hello World</Text>
       </View>
     )
   }
