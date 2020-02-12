@@ -285,6 +285,8 @@ npm run dev:tt
 ```
 然后用对应的工具， 打开项目内的`dist`文件夹
 
+微信<img src="https://github.com/ctwj/studyTarojs/blob/master/images/wechat.png?raw=true" width="375">抖音<img src="https://github.com/ctwj/studyTarojs/blob/master/images/bytedance.png?raw=true" width="375">
+
 # 二 添加组件
 
 本节通过添加一个加载页面来演示 组件的添加和使用
@@ -517,4 +519,4 @@ export const getData = () => {
 ```
 
 更多代码详情请查看代码分支 `loading`
-预览
+预览 <img src="https://github.com/ctwj/studyTarojs/blob/master/images/loading-tt.gif?raw=true" width="375">
