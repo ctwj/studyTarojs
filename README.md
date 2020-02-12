@@ -466,7 +466,7 @@ class Info extends Component {
 export default Info;
 ```
 
-这里的终点是进行接口请求的监听， 
+这里的重点是进行接口请求的监听， 
 >const isLoading = loading.effects['info/getData'];
 
 在 `componentDidMount` 进行初始化， 时会调用到这个接口，
