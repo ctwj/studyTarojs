@@ -750,7 +750,7 @@ const mapStateToProps = (state) => {
 export default connect(mapStateToProps)(Child2)
 ```
 
-可以看到， 其实共享状态， 已经不分什么父组件子组件了， 状态都可以当做自己组建的一部分
+可以看到， 其实共享状态， 已经不分什么父组件子组件了， 状态都可以当做自己组件的一部分
 组件可以根据需要，来加载自己组件需要的一些状态， 根据状态来决定页面的显示。
 
 具体代码参考 分支 `communication`
