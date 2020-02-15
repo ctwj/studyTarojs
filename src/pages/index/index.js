@@ -55,7 +55,7 @@ class Index extends Component {
           <Text className='hello' onClick={this.navigationCommunication}>父子组件通信1</Text>
         </View>
         <View className=''>
-          <Text className='hello' onClick={this.navigationCommunication1}>父子组件同行2（redux）</Text>
+          <Text className='hello' onClick={this.navigationCommunication1}>父子组件通信2（redux）</Text>
         </View>
       </View>
     )
