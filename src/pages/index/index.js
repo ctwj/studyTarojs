@@ -27,6 +27,18 @@ class Index extends Component {
     })
   }
 
+  navigationCommunication () {
+    Taro.navigateTo({
+      url: '/pages/communication/index1'
+    })
+  }
+
+  navigationCommunication1 () {
+    Taro.navigateTo({
+      url: '/pages/communication/index2'
+    })
+  }
+
   render (props) {
     // const { loading } = props
 
@@ -36,7 +48,15 @@ class Index extends Component {
 
     return (
       <View className='my-page'>
-        <Text className='hello' onClick={this.navigationInfo}>Hello World</Text>
+        <View className=''>
+          <Text className='hello' onClick={this.navigationInfo}>dva-loading</Text>
+        </View>
+        <View className=''>
+          <Text className='hello' onClick={this.navigationCommunication}>父子组件通信1</Text>
+        </View>
+        <View className=''>
+          <Text className='hello' onClick={this.navigationCommunication1}>父子组件同行2（redux）</Text>
+        </View>
       </View>
     )
   }
