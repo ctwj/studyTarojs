@@ -520,3 +520,237 @@ export const getData = () => {
 
 更多代码详情请查看代码分支 `loading`
 预览 <img src="https://github.com/ctwj/studyTarojs/blob/master/images/loading-tt.gif?raw=true" width="375">
+
+# 四 父子组件之间的通信
+
+`dva` 集成了 `redux` 用来做转态管理, 在不适用 `redux` 的情况，也可以进行父子组件之间的通信 
+
+新建 `communication` 页作为父组件， `index.less` 公共样式
+新建对应的文件  `index1.js`,`childone.js` 作为无转态管理的父子通信示例 `Child1`
+新建 `index2.js`,`childtwo.js` 作为存在状态管理的父子通信示例 `Child2`
+
+因为是否使用状态管理， 初始化代码并不完全相同， 所以写了两个实例页面。
+
+### 1. 没有状态管理的情况下， 父子组件之间的通信
+
+`index1.js`
+```
+import Taro, { Component } from '@tarojs/taro'
+import { View, Text } from '@tarojs/components'
+
+import Child from './child1'
+import './index.less'
+
+class Commu1 extends Component {
+
+  constructor(props) {
+    super(props)
+    this.children = null
+    this.random = Math.random(0, 1)
+  }
+
+  bindRef (ref) {
+    this.children = ref
+  }
+  showSubSpecial () {
+    this.children.toggleSpeical()
+  }
+
+  parentFunction () {
+    Taro.showModal({
+      title: '我来自父组件'
+    })
+  }
+
+  render () {
+    return (
+      <View className='my-page'>
+        <View className='controller'>
+          <View>
+            <Text>父组件</Text>
+          </View>
+          <View>
+            <Text>{this.random}</Text>
+          </View>
+          <View>
+            <Text onClick={this.showSubSpecial}>调用子组件函数</Text>
+          </View>
+        </View>
+
+        <Child random={this} onParentEvent={this.parentFunction} onTriggerRefs={this.bindRef.bind(this)}></Child>
+      </View>
+    )
+  }
+}
+
+export default Commu1;
+```
+
+`child1.js`
+```
+import Taro, { Component } from '@tarojs/taro'
+import { View, Text } from '@tarojs/components'
+
+import './index.less'
+
+class Child1 extends Component {
+
+  constructor(props) {
+    this.setState({
+      isShow: false
+    })
+  }
+
+  componentDidMount () {
+    this.props.onTriggerRefs(this)
+  }
+
+  toggleSpeical () {
+    Taro.showModal({
+      'title': '我来自子组件Child1'
+    })
+    let { isShow } = this.state
+    this.setState({
+      isShow: !isShow
+    })
+  }
+
+  parentEve () {
+    this.props.onParentEvent()
+  }
+
+
+  render () {
+    let { isShow } = this.state
+    let specialClass = isShow ? 'special' : 'special hide'
+    return (
+      <View className='component'>
+        <View className='title'>
+          <Text>子组件 Child1</Text>
+        </View>
+        <View className='title'>
+          <Text>来自父组件 {this.props.random}</Text>
+        </View>
+        <View onClick={this.parentEve} className='title'>
+          <Text>子组件 Child1 调用父组件函数</Text>
+        </View>
+
+        <View className='hidearea'>
+          <Text>子组件下隐藏区域</Text>
+        </View>
+        <View className={specialClass}>
+          <Text>我是子组件的隐藏区域</Text>
+        </View>
+      </View>
+    )
+  }
+}
+
+export default Child1;
+```
+
+子组件调用父组件的方法和变量， 还是很方便的， 只需要在调用子组件的时候， 传递一个事件既可以实现
+`<Child random={this} onParentEvent={this.parentFunction} onTriggerRefs={this.bindRef.bind(this)}></Child>`
+
+父组件获取子组件的变量， 只要向子组件传递一个函数接收就行了
+
+但是， 父组件调用自己建的方法，就比较麻烦了， 
+
+  1. 父组件向子组件传递一个方法  onTriggerRefs={this.bindRef.bind(this)
+  2. 在子组件的 componentDidMount 方法中 this.props.onTriggerRefs(this) 将 this 传递出来
+  3. 通过 bindRef 将子组件 this 复制给 this.children
+  4. 通过 this.children 直接调用子组件函数
+
+除了调用子组件函数， 其他还是比较容易，代码也不复杂， 但是，父组件调用子组件函数就很麻烦了。
+
+### 2. 使用 `redux`
+
+`index2.js`
+```
+import Taro, { Component } from '@tarojs/taro'
+import { View, Text } from '@tarojs/components'
+import { connect } from '@tarojs/redux';
+import Child from './child2'
+import './index.less'
+
+@connect(({ communication, loading }) => ({ communication, ...loading }))
+class Commu2 extends Component {
+
+  showSubSpecial () {
+    let { dispatch } = this.props
+    let { isShow } = this.props.communication
+    dispatch({
+      type: 'communication/toggleShow',
+      payload: {
+        isShow: !isShow
+      }
+    })
+  }
+
+  render () {
+    return (
+      <View className='my-page'>
+        <View className='controller'>
+          <View>
+            <Text>父组件</Text>
+          </View>
+          <View>
+            <Text>{this.random}</Text>
+          </View>
+          <View>
+            <Text onClick={this.showSubSpecial}>调用子组件函数</Text>
+          </View>
+        </View>
+
+        <Child></Child>
+      </View>
+    )
+  }
+}
+
+export default Commu2;
+```
+
+
+`child2.js`
+```
+import Taro, { Component } from '@tarojs/taro'
+import { View, Text } from '@tarojs/components'
+import { connect } from '@tarojs/redux';
+import './index.less'
+
+class Child2 extends Component {
+  componentDidMount () {
+    console.log(this.props, this.state)
+  }
+  render () {
+    let { isShow } = this.props.communication
+    let specialClass = isShow ? 'special' : 'special hide'
+    return (
+      <View className='component'>
+        <View className='title'>
+          <Text>子组件 Child1</Text>
+        </View>
+
+        <View className={specialClass}>
+          <Text>我是子组件的隐藏区域</Text>
+        </View>
+      </View>
+    )
+  }
+}
+
+const mapStateToProps = (state) => {
+  let { communication } = state
+  return {
+    communication
+  }
+}
+
+export default connect(mapStateToProps)(Child2)
+```
+
+可以看到， 其实共享状态， 已经不分什么父组件子组件了， 状态都可以当做自己组件的一部分
+组件可以根据需要，来加载自己组件需要的一些状态， 根据状态来决定页面的显示。
+
+具体代码参考 分支 `communication`
